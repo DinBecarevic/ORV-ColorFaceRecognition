@@ -10,8 +10,8 @@ def doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj):
 
 
 def zmanjsaj_sliko(slika, sirina, visina):
-    # TODO: return resized image as np.ndarray
-    pass
+    # return as np.ndarray
+    return cv2.resize(slika, (sirina, visina), interpolation=cv2.INTER_AREA) # INTER_AREA - resampling using pixel area relation
 
 
 def prestej_piksle_z_barvo_koze(slika, barva_koze):
