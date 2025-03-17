@@ -20,8 +20,25 @@ def prestej_piksle_z_barvo_koze(slika, barva_koze):
 
 
 def obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze):
-    # TODO: return list of square regions where color matches skin color
-    pass
+    # return: list of tuples (x, y, width, height, skin_pixel_count)
+
+    height, width = slika.shape[:2] # :2 -> visina in širina
+    results = []
+
+    step_size = 16  #320/20 = 16px  in  240/15 = 16px
+
+    for y in range(0, height - visina_skatle + 1, step_size): #0, 320-16+1, 16
+        for x in range(0, width - sirina_skatle + 1, step_size):
+            window = slika[y:y + visina_skatle, x:x + sirina_skatle] # window[0:15, 0:20]
+
+            skin_px_count = prestej_piksle_z_barvo_koze(window, barva_koze)
+
+            px_count_treshold = 0.6 * (sirina_skatle * visina_skatle) # 0.6 * (20*15) = 180px
+            if skin_px_count > px_count_treshold:
+                # multiply by 2 because slika is 2x smaller then webcam original
+                results.append((x*2, y*2, sirina_skatle*2, visina_skatle*2, skin_px_count))
+
+    return results
 
 
 def main():
