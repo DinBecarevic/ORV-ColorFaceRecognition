@@ -15,8 +15,14 @@ def zmanjsaj_sliko(slika, sirina, visina):
 
 
 def prestej_piksle_z_barvo_koze(slika, barva_koze):
-    # TODO: return number of skin pixels in the image (square area)
-    pass
+    lower_bound, upper_bound = barva_koze
+
+    # we need to through every pixel in the image and check if it is in the range of the skin color
+    # cv2.inRange creates a binary mask where skin color pixels are white (255) and others are black (0).
+    mask = cv2.inRange(slika, lower_bound, upper_bound)
+
+    # count non-zero pixels (255) in a mask
+    return cv2.countNonZero(mask)
 
 
 def obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze):
