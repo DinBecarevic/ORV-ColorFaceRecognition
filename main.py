@@ -82,6 +82,10 @@ def main():
     # target size for processing
     target_width, target_height = 320, 240
 
+    # FPS calculation
+    prev_frame_time = 0 # seconds.ms
+    new_frame_time = 0
+
     skin_color_determined = False
     barva_koze = None
 
@@ -94,6 +98,14 @@ def main():
             break
 
         frame = cv2.flip(frame, 1)
+
+        # calculate FPS
+        new_frame_time = time.time()
+        fps = 1 / (new_frame_time - prev_frame_time) if prev_frame_time > 0 else 0  # 1 / (seconds.ms - seconds.ms)
+        prev_frame_time = new_frame_time
+
+        # Convert fps to string for display
+        fps_text = f"FPS: {fps:.2f}"
 
         if not skin_color_determined:
             # 640x480 is the resolution of the webcam by default
@@ -132,6 +144,10 @@ def main():
             # display boxes for potential faces
             for x, y, w, h, count in rezultati:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+            # add FPS text to the frame
+            cv2.putText(frame, fps_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
+                        0.5, (0, 0, 255), 1)
 
             # show the frame
             cv2.imshow('Face Detection', frame)
