@@ -11,7 +11,7 @@ def doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj):
     roi = slika[y1:y2, x1:x2]
 
     mean_color = np.mean(roi, axis=(0, 1)) # axis (width and height)
-    tolerance = np.array([50, 50, 50])
+    tolerance = np.array([55, 55, 55])
 
     lower_bound = np.array([[max(0, mean_color[0] - tolerance[0]),
                              max(0, mean_color[1] - tolerance[1]),
