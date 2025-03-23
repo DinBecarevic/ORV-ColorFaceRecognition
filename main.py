@@ -16,16 +16,15 @@ def zmanjsaj_sliko(slika, sirina, visina):
 
 def prestej_piksle_z_barvo_koze(slika, barva_koze):
     lower_bound, upper_bound = barva_koze
-    #  error: (-215:Assertion failed) lb.type() == ub.type() in function 'cv::inRange'
+    # error: (-215:Assertion failed) lb.type() == ub.type() in function 'cv::inRange'
     # we need to round the float up and convert to int
     lower_bound = np.round(lower_bound).astype(int)
     upper_bound = np.round(upper_bound).astype(int)
 
     # we need to through every pixel in the image and check if it is in the range of the skin color
-    # cv2.inRange creates a binary mask where skin color pixels are white (255) and others are black (0).
+    # inRange creates a binary mask where skin color pixels are white (255) and others are black (0).
     mask = cv2.inRange(slika, lower_bound, upper_bound)
 
-    # count non-zero pixels (255) in a mask
     return cv2.countNonZero(mask)
 
 
