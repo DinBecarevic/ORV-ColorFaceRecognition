@@ -60,7 +60,7 @@ def obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze):
 
             skin_px_count = prestej_piksle_z_barvo_koze(window, barva_koze)
 
-            px_count_treshold = 0.6 * (sirina_skatle * visina_skatle) # 0.6 * (20*15) = 180px
+            px_count_treshold = 0.7 * (sirina_skatle * visina_skatle) # 0.6 * (20*15) = 210px
             if skin_px_count > px_count_treshold:
                 # multiply by 2 because slika is 2x smaller then webcam original
                 results.append((x*2, y*2, sirina_skatle*2, visina_skatle*2, skin_px_count))
