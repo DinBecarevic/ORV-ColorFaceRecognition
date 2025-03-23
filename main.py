@@ -11,7 +11,7 @@ def doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj):
     roi = slika[y1:y2, x1:x2]
 
     mean_color = np.mean(roi, axis=(0, 1)) # axis (width and height)
-    tolerance = np.array([50, 50, 50])
+    tolerance = np.array([55, 55, 55])
 
     lower_bound = np.array([[max(0, mean_color[0] - tolerance[0]),
                              max(0, mean_color[1] - tolerance[1]),
@@ -33,16 +33,15 @@ def zmanjsaj_sliko(slika, sirina, visina):
 
 def prestej_piksle_z_barvo_koze(slika, barva_koze):
     lower_bound, upper_bound = barva_koze
-    #  error: (-215:Assertion failed) lb.type() == ub.type() in function 'cv::inRange'
+    # error: (-215:Assertion failed) lb.type() == ub.type() in function 'cv::inRange'
     # we need to round the float up and convert to int
     lower_bound = np.round(lower_bound).astype(int)
     upper_bound = np.round(upper_bound).astype(int)
 
     # we need to through every pixel in the image and check if it is in the range of the skin color
-    # cv2.inRange creates a binary mask where skin color pixels are white (255) and others are black (0).
+    # inRange creates a binary mask where skin color pixels are white (255) and others are black (0).
     mask = cv2.inRange(slika, lower_bound, upper_bound)
 
-    # count non-zero pixels (255) in a mask
     return cv2.countNonZero(mask)
 
 
@@ -60,7 +59,7 @@ def obdelaj_sliko_s_skatlami(slika, sirina_skatle, visina_skatle, barva_koze):
 
             skin_px_count = prestej_piksle_z_barvo_koze(window, barva_koze)
 
-            px_count_treshold = 0.6 * (sirina_skatle * visina_skatle) # 0.6 * (20*15) = 180px
+            px_count_treshold = 0.7 * (sirina_skatle * visina_skatle) # 0.6 * (20*15) = 210px
             if skin_px_count > px_count_treshold:
                 # multiply by 2 because slika is 2x smaller then webcam original
                 results.append((x*2, y*2, sirina_skatle*2, visina_skatle*2, skin_px_count))
@@ -82,6 +81,10 @@ def main():
     # target size for processing
     target_width, target_height = 320, 240
 
+    # FPS calculation
+    prev_frame_time = 0 # seconds.ms
+    new_frame_time = 0
+
     skin_color_determined = False
     barva_koze = None
 
@@ -94,6 +97,14 @@ def main():
             break
 
         frame = cv2.flip(frame, 1)
+
+        # calculate FPS
+        new_frame_time = time.time()
+        fps = 1 / (new_frame_time - prev_frame_time) if prev_frame_time > 0 else 0  # 1 / (seconds.ms - seconds.ms)
+        prev_frame_time = new_frame_time
+
+        # Convert fps to string for display
+        fps_text = f"FPS: {fps:.2f}"
 
         if not skin_color_determined:
             # 640x480 is the resolution of the webcam by default
@@ -132,6 +143,10 @@ def main():
             # display boxes for potential faces
             for x, y, w, h, count in rezultati:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+            # add FPS text to the frame
+            cv2.putText(frame, fps_text, (10, 30), cv2.FONT_HERSHEY_SIMPLEX,
+                        0.5, (0, 0, 255), 1)
 
             # show the frame
             cv2.imshow('Face Detection', frame)
