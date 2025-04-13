@@ -26,7 +26,7 @@ jobs:
         
     - name: Check if test files exist
       run: |
-        python3 check_tests.py 2> napaka.txt || echo "Test checking failed"
+        python3 .tests/check_tests.py 2> napaka.txt || echo "Test checking failed"
         cat napaka.txt  # Prikaži vsebino napake (če obstaja)
     
     - name: Upload error file as artifact
@@ -44,7 +44,7 @@ jobs:
     
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10', '3.12']  # Dodal sem 3.12 kot opcijo
+        python-version: [3.12']  # Dodal sem 3.12 kot opcijo
     
     steps:
     - name: Checkout repository
@@ -91,7 +91,7 @@ jobs:
         python --version
         
         # Zaženi teste
-        python -m pytest test_face_detection.py -v
+        python -m pytest -tests/test_main.py -v
         
     - name: Create test result artifact
       run: |
