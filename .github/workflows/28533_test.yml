@@ -8,7 +8,28 @@ on:
     branches: [ main ]
 
 jobs:
-  # prvi posel - pripravi okolje in zažene teste
+  # Prvi posel - preveri, ali obstajajo testne skripte
+  check-tests:
+    name: Check for Test Scripts
+    runs-on: self-hosted  # Uporabi self-hosted runner
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Check if test files exist
+      run: |
+        python check_tests.py 2> napaka.txt || echo "Test checking failed"
+        cat napaka.txt  # Prikaži vsebino napake (če obstaja)
+    
+    - name: Upload error file as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: error-file
+        path: napaka.txt
+        retention-days: 1
+
+  # drugi posel - pripravi okolje in zažene teste
   run-tests:
     name: Run Tests
     needs: check-tests  # Odvisnost od prvega posla
