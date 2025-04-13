@@ -1,0 +1,63 @@
+name: Test Face Detection Application
+
+# Sproži, ko se naredi potisk na main vejo
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # prvi posel - pripravi okolje in zažene teste
+  run-tests:
+    name: Run Tests
+    needs: check-tests  # Odvisnost od prvega posla
+    runs-on: self-hosted  # Uporabi self-hosted runner
+    
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.12']
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Download error file artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: error-file
+        
+    - name: Check error file content
+      run: |
+        if [ -s napaka.txt ]; then
+          echo "Error file contains errors:"
+          cat napaka.txt
+          exit 1  # Končaj z napako, če obstaja
+        else
+          echo "No errors found, continuing with tests."
+        fi
+        
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install numpy opencv-python pytest
+        
+    - name: Run tests
+      run: |
+        python -m pytest test_main.py -v
+        
+    - name: Create test result artifact
+      run: |
+        echo "Tests completed successfully" > test_result.txt
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: test_result.txt
+        retention-days: 1

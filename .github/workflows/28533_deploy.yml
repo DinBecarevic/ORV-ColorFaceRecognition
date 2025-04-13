@@ -1,0 +1,68 @@
+name: Deploy Face Detection Application
+
+# Sproži se, ko se uspešno zaključi testiranje
+on:
+  workflow_run:
+    workflows: ["Test Face Detection Application"]
+    types:
+      - completed
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Build and Deploy Docker Image
+    runs-on: self-hosted  # Uporabi self-hosted runner
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}  # Izvedi samo, če je testiranje uspešno
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+      
+    - name: Login to DockerHub
+      # Uporaba Docker CLI neposredno, kar bo delovalo na self-hosted runnerju
+      run: |
+        echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+        
+    - name: Create Dockerfile
+      run: |
+        cat > Dockerfile << 'EOL'
+        FROM python:3.9-slim
+        
+        WORKDIR /app
+        
+        # Namesti potrebne pakete za OpenCV
+        RUN apt-get update && apt-get install -y \
+            libgl1-mesa-glx \
+            libglib2.0-0 \
+            && rm -rf /var/lib/apt/lists/*
+        
+        COPY requirements.txt .
+        RUN pip install --no-cache-dir -r requirements.txt
+        
+        COPY main.py .
+        
+        # Uporaba dummy video naprave
+        ENV PYTHONUNBUFFERED=1
+        
+        CMD ["python", "main.py"]
+        EOL
+        
+    - name: Create requirements.txt
+      run: |
+        cat > requirements.txt << 'EOL'
+        numpy
+        opencv-python
+        EOL
+        
+    - name: Build Docker image
+      run: |
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/face-detection:latest .
+        
+    - name: Push Docker image
+      run: |
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/face-detection:latest
+        
+    - name: Verify deployment
+      run: |
+        echo "Image successfully deployed to DockerHub!"
+        echo "Repository: ${{ secrets.DOCKERHUB_USERNAME }}/face-detection:latest"
