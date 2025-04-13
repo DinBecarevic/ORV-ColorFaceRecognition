@@ -3,6 +3,7 @@ import numpy as np
 import time
 
 #.\venv\Scripts\activate
+# cicd test
 
 def doloci_barvo_koze(slika, levo_zgoraj, desno_spodaj):
     # region of interest
