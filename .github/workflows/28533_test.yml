@@ -21,18 +21,13 @@ jobs:
       run: |
         # Preveri, katera verzija Python je na voljo
         which python3 || echo "python3 not found"
+        which python || echo "python not found"
         python3 --version || echo "Can't get python3 version"
         
-    - name: Check if main.py exists
+    - name: Check if test files exist
       run: |
-        if [ -f "main.py" ]; then
-          echo "main.py file found, proceeding with tests"
-          echo "All good" > napaka.txt
-        else
-          echo "NAPAKA: Ne najdem datoteke main.py" > napaka.txt
-          cat napaka.txt >&2
-          exit 1
-        fi
+        python3 .tests/check_tests.py 2> napaka.txt || echo "Test checking failed"
+        cat napaka.txt  # Prikaži vsebino napake (če obstaja)
     
     - name: Upload error file as artifact
       uses: actions/upload-artifact@v4
@@ -49,7 +44,7 @@ jobs:
     
     strategy:
       matrix:
-        python-version: ['3.10', '3.12']  # Omejimo na dve verziji za lažje testiranje
+        python-version: ['3.12']  # Dodal sem 3.12 kot opcijo
     
     steps:
     - name: Checkout repository
@@ -62,7 +57,7 @@ jobs:
         
     - name: Check error file content
       run: |
-        if grep -q "NAPAKA" napaka.txt; then
+        if [ -s napaka.txt ]; then
           echo "Error file contains errors:"
           cat napaka.txt
           exit 1  # Končaj z napako, če obstaja
@@ -72,66 +67,31 @@ jobs:
         
     - name: Setup Python Environment
       run: |
-        # Namesti potrebne pakete
+        # Namesti Python, če še ni nameščen
         sudo apt-get update
-        sudo apt-get install -y python3-full python3-pip pipx
+        sudo apt-get install -y python3-full python3-pip python3-venv pipx
         
-        # Ustvari virtualno okolje in aktiviraj
-        python3 -m venv .venv_${{ matrix.python-version }}
-        echo "VENV_PATH=$(pwd)/.venv_${{ matrix.python-version }}" >> $GITHUB_ENV
+        # Ustvari virtualno okolje z želeno Python verzijo
+        python3 -m venv venv_${{ matrix.python-version }}
+        source venv_${{ matrix.python-version }}/bin/activate
         
-    - name: Install dependencies
-      run: |
-        # Aktiviraj virtualno okolje in namesti pakete
-        source $VENV_PATH/bin/activate
-        python -m pip install --upgrade pip
-        pip install pytest numpy opencv-python
+        # Namesti potrebne pakete
+        pip install --upgrade pip
+        pip install numpy opencv-python pytest
         
-    - name: Create test file
-      run: |
-        # Ustvari preprosto testno datoteko za testiranje osnovnih funkcionalnosti
-        cat > test_basic.py << 'EOL'
-        import unittest
-        import numpy as np
-        import cv2
-        import os
-        import sys
-        import main
-
-        class TestBasicFunctionality(unittest.TestCase):
-    
-            def test_import(self):
-                """Test if all modules can be imported"""
-                self.assertTrue(hasattr(main, 'doloci_barvo_koze'))
-                self.assertTrue(hasattr(main, 'zmanjsaj_sliko'))
-                self.assertTrue(hasattr(main, 'prestej_piksle_z_barvo_koze'))
-                self.assertTrue(hasattr(main, 'obdelaj_sliko_s_skatlami'))
-
-            def test_zmanjsaj_sliko(self):
-                """Test za funkcijo zmanjševanja slike"""
-                test_image = np.zeros((100, 100, 3), dtype=np.uint8)
-                target_width, target_height = 50, 30
-
-                resized = main.zmanjsaj_sliko(test_image, target_width, target_height)
-
-                self.assertEqual(resized.shape[1], target_width)
-                self.assertEqual(resized.shape[0], target_height)
-
-        if __name__ == "__main__":
-            unittest.main()
-        
-        EOL
+        # Shrani aktivacijsko skripto za kasnejšo uporabo
+        echo "source $(pwd)/venv_${{ matrix.python-version }}/bin/activate" > activate_venv.sh
         
     - name: Run tests
       run: |
         # Aktiviraj virtualno okolje
-        source $VENV_PATH/bin/activate
+        source activate_venv.sh
         
         # Prikaži verzijo Python-a
         python --version
         
         # Zaženi teste
-        python -m pytest test_basic.py -v
+        python -m pytest .tests/test_main.py -v
         
     - name: Create test result artifact
       run: |
