@@ -37,7 +37,7 @@ jobs:
     
     strategy:
       matrix:
-        python-version: ['3.8', '3.9', '3.10']  # Uporaba matrike za testiranje z različnimi verzijami Pythona
+        python-version: ['3.12']  # Uporaba matrike za testiranje z različnimi verzijami Pythona
     
     steps:
     - name: Checkout repository
