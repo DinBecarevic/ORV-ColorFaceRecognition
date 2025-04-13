@@ -19,9 +19,9 @@ jobs:
       uses: actions/checkout@v3
       
     - name: Login to DockerHub
-      # Uporaba Docker CLI neposredno, kar bo delovalo na self-hosted runnerju
+      # Uporaba Docker CLI neposredno, z sudo
       run: |
-        echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+        echo "${{ secrets.DOCKERHUB_TOKEN }}" | sudo docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
         
     - name: Create Dockerfile
       run: |
@@ -56,11 +56,11 @@ jobs:
         
     - name: Build Docker image
       run: |
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/face-detection:latest .
+        sudo docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/face-detection:latest .
         
     - name: Push Docker image
       run: |
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/face-detection:latest
+        sudo docker push ${{ secrets.DOCKERHUB_USERNAME }}/face-detection:latest
         
     - name: Verify deployment
       run: |
