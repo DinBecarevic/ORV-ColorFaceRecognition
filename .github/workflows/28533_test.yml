@@ -23,13 +23,13 @@ jobs:
         cat napaka.txt  # Prikaži vsebino napake (če obstaja)
     
     - name: Upload error file as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4  # Posodobljeno na v4
       with:
         name: error-file
         path: napaka.txt
         retention-days: 1
 
-  # drugi posel - pripravi okolje in zažene teste
+  # Drugi posel - pripravi okolje in zažene teste
   run-tests:
     name: Run Tests
     needs: check-tests  # Odvisnost od prvega posla
@@ -37,14 +37,14 @@ jobs:
     
     strategy:
       matrix:
-        python-version: ['3.9', '3.12']
+        python-version: ['3.8', '3.9', '3.10']  # Uporaba matrike za testiranje z različnimi verzijami Pythona
     
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
       
     - name: Download error file artifact
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4  # Posodobljeno na v4
       with:
         name: error-file
         
@@ -70,14 +70,14 @@ jobs:
         
     - name: Run tests
       run: |
-        python -m pytest test_main.py -v
+        python -m pytest test_face_detection.py -v
         
     - name: Create test result artifact
       run: |
         echo "Tests completed successfully" > test_result.txt
         
     - name: Upload test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4  # Posodobljeno na v4
       with:
         name: test-results
         path: test_result.txt
